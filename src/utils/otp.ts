@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 
+
 // Generate a 6-digit numeric OTP as a string
 export const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 

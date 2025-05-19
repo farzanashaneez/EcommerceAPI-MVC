@@ -7,7 +7,7 @@ import {
   googleAuth,
 } from "../controllers/auth.controller"; // Import controller functions
 import { asyncHandler } from "../utils/asyncHandler"; // Middleware to handle async errors
-
+ 
 // Initialize the router
 const router = Router();
 

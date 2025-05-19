@@ -1,137 +1,358 @@
-import { Request, Response } from "express";
+// import { Request, Response } from "express";
+// import User from "../models/User";
+// import Otp from '../models/Otp';
+// import bcrypt from "bcryptjs";
+// import jwt from "jsonwebtoken";
+// import { sendOTPEmail, generateOTP } from "../utils/otp";
+// import { OAuth2Client } from "google-auth-library";
+// import httpStatus from "../utils/httpStatus";
+
+// // Initialize Google OAuth2 client
+// const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// // @route   POST /register
+// // @desc    Register a new user and send OTP to email
+// export const register = async (
+//   req: Request,
+//   res: Response
+// ): Promise<Response> => {
+//   const { name, email, password } = req.body;
+//   console.log(name)
+
+//   // Check if email already has a verified user
+//   const existingUser = await User.findOne({ email });
+//   if (existingUser)
+//     return res.status(httpStatus.BAD_REQUEST).json({ message: 'User already exists' });
+
+//   // Delete any old OTPs for the email
+//   await Otp.deleteMany({ email });
+
+//   // Hash password and store it temporarily with OTP
+//   const hashed = await bcrypt.hash(password, 10);
+//   const otp = generateOTP();
+
+//   // Save OTP with name, email, and hashed password
+//   await Otp.create({ email, name, password: hashed, otp });
+
+//   // Send OTP email
+//   await sendOTPEmail(email, otp);
+
+//   return res
+//     .status(httpStatus.CREATED)
+//     .json({ message: 'OTP sent. Please verify your email.' });
+// };
+
+// // @route   POST /verify-otp
+// // @desc    Verify OTP sent to user's email
+// export const verifyOTP = async (
+//   req: Request,
+//   res: Response
+// ): Promise<Response> => {
+//   const { email, otp } = req.body;
+
+//   // Check for matching OTP
+//   const otpRecord = await Otp.findOne({ email, otp });
+//   if (!otpRecord)
+//     return res.status(httpStatus.BAD_REQUEST).json({ message: 'Invalid or expired OTP' });
+
+//   // Double-check user doesn't already exist
+//   const existingUser = await User.findOne({ email });
+//   if (existingUser)
+//     return res.status(httpStatus.BAD_REQUEST).json({ message: 'User already verified' });
+
+//   // Create user
+//   const user = new User({
+//     name: otpRecord.name,
+//     email: otpRecord.email,
+//     password: otpRecord.password,
+//     isVerified: true
+//   });
+//   await user.save();
+
+//   // Delete OTP record
+//   await Otp.deleteOne({ _id: otpRecord._id });
+
+//   return res.status(httpStatus.OK).json({ message: 'Email verified and user created successfully' });
+// };
+
+
+// // @route   POST /login
+// // @desc    Login with email and password
+// export const login = async (req: Request, res: Response): Promise<Response> => {
+//   const { email, password } = req.body;
+
+//   // Find user and check verification
+//   const user = await User.findOne({ email });
+//   if (!user || !user.isVerified)
+//     return res.status(httpStatus.BAD_REQUEST).json({ message: "Not verified" });
+
+//     //check user is blocked
+//   if (!user || user.isBlocked)
+//     return res.status(httpStatus.FORBIDDEN).json({ message: "No access" });
+
+//   // Compare hashed passwords
+//   const isMatch = await bcrypt.compare(password, user.password);
+//   if (!isMatch)
+//     return res
+//       .status(httpStatus.BAD_REQUEST)
+//       .json({ message: "Invalid credentials" });
+
+//   // Generate JWT token
+//   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, {
+//     expiresIn: "1d",
+//   });
+
+//   // Exclude password from returned user object
+//   const { password: _, ...userWithoutPassword } = user.toObject();
+
+//   // Respond with token and user data
+//   return res.json({ token, user: userWithoutPassword });
+// };
+
+// // @route   POST /google-auth
+// // @desc    Authenticate using Google OAuth
+// export const googleAuth = async (
+//   req: Request,
+//   res: Response
+// ): Promise<Response> => {
+//   const { tokenId } = req.body;
+
+//   // Verify Google token
+//   const ticket = await client.verifyIdToken({
+//     idToken: tokenId,
+//     audience: process.env.GOOGLE_CLIENT_ID,
+//   });
+
+//   const payload = ticket.getPayload();
+
+//   // Check if email is verified by Google
+//   if (!payload?.email_verified)
+//     return res.status(httpStatus.FORBIDDEN).json({ message: "Email not verified" });
+
+//   // Check if user already exists
+//   let user = await User.findOne({ email: payload.email });
+
+//   // If user doesn't exist, create a new one
+//   if (!user) {
+//     user = new User({
+//       name: payload.name,
+//       email: payload.email,
+//       isVerified: true,
+//       googleId: payload.sub,
+//     });
+
+//     await user.save();
+//   }
+
+//   // Generate JWT token
+//   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, {
+//     expiresIn: "1d",
+//   });
+
+//   // Respond with token and user data
+//   return res.json({ token, user });
+// };
+
+// // @route   DELETE /delete-user/:id
+// // @desc    Delete a user by ID
+// export const deleteUser = async (req: Request, res: Response): Promise<Response> => {
+//   const { id } = req.params;
+
+//   try {
+//     const user = await User.findByIdAndDelete(id);
+
+//     if (!user) {
+//       return res.status(httpStatus.NOT_FOUND).json({ message: 'User not found' });
+//     }
+
+//     return res.status(httpStatus.OK).json({ message: 'User deleted successfully' });
+//   } catch (error) {
+//     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Error deleting user' });
+//   }
+// };
+
+// // @route   PATCH /block-user/:id
+// // @desc    Block or unblock a user
+// export const blockUser = async (req: Request, res: Response): Promise<Response> => {
+//   const { id } = req.params;
+//   const { block } = req.body; // true to block, false to unblock
+
+//   try {
+//     const user = await User.findByIdAndUpdate(id, { isBlocked: block }, { new: true });
+
+//     if (!user) {
+//       return res.status(httpStatus.NOT_FOUND).json({ message: 'User not found' });
+//     }
+
+//     return res.status(httpStatus.OK).json({ 
+//       message: `User has been ${block ? 'blocked' : 'unblocked'} successfully`,
+//       user 
+//     });
+//   } catch (error) {
+//     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Error updating user status' });
+//   }
+// };
+
+import { Request, Response, NextFunction } from "express";
 import User from "../models/User";
+import Otp from '../models/Otp';
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { sendOTPEmail, generateOTP } from "../utils/otp";
 import { OAuth2Client } from "google-auth-library";
 import httpStatus from "../utils/httpStatus";
 
-// Initialize Google OAuth2 client
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // @route   POST /register
-// @desc    Register a new user and send OTP to email
-export const register = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
-  const { name, email, password } = req.body;
+export const register = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  try {
+    const { name, email, password } = req.body;
 
-  // Check if user already exists
-  const existing = await User.findOne({ email });
-  if (existing)
-    return res.status(httpStatus.BAD_REQUEST).json({ message: "User exists" });
+    const existingUser = await User.findOne({ email });
+    if (existingUser)
+      return res.status(httpStatus.BAD_REQUEST).json({ message: 'User already exists' });
 
-  // Hash the password
-  const hashed = await bcrypt.hash(password, 10);
+    await Otp.deleteMany({ email });
 
-  // Generate OTP and save user
-  const otp = generateOTP();
-  const user = new User({ name, email, password: hashed, otp });
+    const hashed = await bcrypt.hash(password, 10);
+    const otp = generateOTP();
 
-  // Save user and send OTP email
-  await user.save();
-  await sendOTPEmail(email, otp);
+    await Otp.create({ email, name, password: hashed, otp });
+    await sendOTPEmail(email, otp);
 
-  // Respond with success
-  return res
-    .status(httpStatus.CREATED)
-    .json({ message: "OTP sent. Please verify email." });
+    return res.status(httpStatus.CREATED).json({ message: 'OTP sent. Please verify your email.' });
+  } catch (err) {
+    next(err);
+  }
 };
 
 // @route   POST /verify-otp
-// @desc    Verify OTP sent to user's email
-export const verifyOTP = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
-  const { email, otp } = req.body;
+export const verifyOTP = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  try {
+    const { email, otp } = req.body;
 
-  // Find user by email
-  const user = await User.findOne({ email });
+    const otpRecord = await Otp.findOne({ email, otp });
+    if (!otpRecord)
+      return res.status(httpStatus.BAD_REQUEST).json({ message: 'Invalid or expired OTP' });
 
-  // Check if user or OTP is invalid
-  if (!user || user.otp !== otp)
-    return res.status(httpStatus.BAD_REQUEST).json({ message: "Invalid OTP" });
+    const existingUser = await User.findOne({ email });
+    if (existingUser)
+      return res.status(httpStatus.BAD_REQUEST).json({ message: 'User already verified' });
 
-  // Set user as verified and remove OTP
-  user.isVerified = true;
-  user.otp = undefined;
-  await user.save();
+    const user = new User({
+      name: otpRecord.name,
+      email: otpRecord.email,
+      password: otpRecord.password,
+      isVerified: true,
+    });
+    await user.save();
+    await Otp.deleteOne({ _id: otpRecord._id });
 
-  // Respond with success
-  return res.status(httpStatus.OK).json({ message: "Email verified successfully" });
+    return res.status(httpStatus.OK).json({ message: 'Email verified and user created successfully' });
+  } catch (err) {
+    next(err);
+  }
 };
 
 // @route   POST /login
-// @desc    Login with email and password
-export const login = async (req: Request, res: Response): Promise<Response> => {
-  const { email, password } = req.body;
+export const login = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  try {
+    const { email, password } = req.body;
 
-  // Find user and check verification
-  const user = await User.findOne({ email });
-  if (!user || !user.isVerified)
-    return res.status(httpStatus.BAD_REQUEST).json({ message: "Not verified" });
+    const user = await User.findOne({ email });
+    if (!user || !user.isVerified)
+      return res.status(httpStatus.BAD_REQUEST).json({ message: "Not verified" });
 
-  // Compare hashed passwords
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch)
-    return res
-      .status(httpStatus.BAD_REQUEST)
-      .json({ message: "Invalid credentials" });
+    if (user.isBlocked)
+      return res.status(httpStatus.FORBIDDEN).json({ message: "No access" });
 
-  // Generate JWT token
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, {
-    expiresIn: "1d",
-  });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      return res.status(httpStatus.BAD_REQUEST).json({ message: "Invalid credentials" });
 
-  // Exclude password from returned user object
-  const { password: _, ...userWithoutPassword } = user.toObject();
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, {
+      expiresIn: "1d",
+    });
 
-  // Respond with token and user data
-  return res.json({ token, user: userWithoutPassword });
+    const { password: _, ...userWithoutPassword } = user.toObject();
+    return res.json({ token, user: userWithoutPassword });
+  } catch (err) {
+    next(err);
+  }
 };
 
 // @route   POST /google-auth
-// @desc    Authenticate using Google OAuth
-export const googleAuth = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
-  const { tokenId } = req.body;
+export const googleAuth = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  try {
+    const { tokenId } = req.body;
 
-  // Verify Google token
-  const ticket = await client.verifyIdToken({
-    idToken: tokenId,
-    audience: process.env.GOOGLE_CLIENT_ID,
-  });
-
-  const payload = ticket.getPayload();
-
-  // Check if email is verified by Google
-  if (!payload?.email_verified)
-    return res.status(httpStatus.FORBIDDEN).json({ message: "Email not verified" });
-
-  // Check if user already exists
-  let user = await User.findOne({ email: payload.email });
-
-  // If user doesn't exist, create a new one
-  if (!user) {
-    user = new User({
-      name: payload.name,
-      email: payload.email,
-      isVerified: true,
-      googleId: payload.sub,
+    const ticket = await client.verifyIdToken({
+      idToken: tokenId,
+      audience: process.env.GOOGLE_CLIENT_ID,
     });
 
-    await user.save();
+    const payload = ticket.getPayload();
+
+    if (!payload?.email_verified)
+      return res.status(httpStatus.FORBIDDEN).json({ message: "Email not verified" });
+
+    let user = await User.findOne({ email: payload.email });
+
+    if (!user) {
+      user = new User({
+        name: payload.name,
+        email: payload.email,
+        isVerified: true,
+        googleId: payload.sub,
+      });
+
+      await user.save();
+    }
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, {
+      expiresIn: "1d",
+    });
+
+    return res.json({ token, user });
+  } catch (err) {
+    next(err);
   }
+};
 
-  // Generate JWT token
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, {
-    expiresIn: "1d",
-  });
+// @route   DELETE /delete-user/:id
+export const deleteUser = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  try {
+    const { id } = req.params;
+    const user = await User.findByIdAndDelete(id);
 
-  // Respond with token and user data
-  return res.json({ token, user });
+    if (!user) {
+      return res.status(httpStatus.NOT_FOUND).json({ message: 'User not found' });
+    }
+
+    return res.status(httpStatus.OK).json({ message: 'User deleted successfully' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @route   PATCH /block-user/:id
+export const blockUser = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  try {
+    const { id } = req.params;
+    const { block } = req.body;
+
+    const user = await User.findByIdAndUpdate(id, { isBlocked: block }, { new: true });
+
+    if (!user) {
+      return res.status(httpStatus.NOT_FOUND).json({ message: 'User not found' });
+    }
+
+    return res.status(httpStatus.OK).json({
+      message: `User has been ${block ? 'blocked' : 'unblocked'} successfully`,
+      user
+    });
+  } catch (err) {
+    next(err);
+  }
 };
