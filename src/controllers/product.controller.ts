@@ -48,16 +48,6 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
 };
 
 // @route   GET /products
-// @desc    Get all products
-// export const getProducts = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
-//   try {
-//     const products = await Product.find().populate("category", "name");
-//     return res.status(httpStatus.OK).json({ products });
-//   } catch (err) {
-//     next(err);
-//   }
-// };
-// @route   GET /products
 // @desc    Get all products with filtering, sorting, searching, and pagination
 export const getAllProducts = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
