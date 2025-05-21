@@ -46,7 +46,7 @@ export const addToCart = async (req: AuthenticatedRequest, res: Response, next: 
 
 // @route   DELETE /cart/remove/:productId
 // @desc    Remove a product item from the cart
-export const removeFromCart = async (req: Request, res: Response, next: NextFunction) => {
+export const removeFromCart = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const { productId } = req.params;
     const userId = req.user?._id; // Get authenticated user's ID
@@ -72,7 +72,7 @@ export const removeFromCart = async (req: Request, res: Response, next: NextFunc
 
 // @route   GET /cart
 // @desc    Get the current user's cart details
-export const getCart = async (req: Request, res: Response, next: NextFunction) => {
+export const getCart = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?._id; // Get authenticated user's ID
 
@@ -93,7 +93,7 @@ export const getCart = async (req: Request, res: Response, next: NextFunction) =
 
 // @route   PATCH /cart/update-quantity
 // @desc    Update the quantity of a specific item in the cart
-export const updateCartItemQuantity = async (req: Request, res: Response, next: NextFunction) => {
+export const updateCartItemQuantity = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const { productId, quantity } = req.body;
     const userId = req.user?._id; // Get authenticated user's ID
@@ -125,7 +125,7 @@ export const updateCartItemQuantity = async (req: Request, res: Response, next: 
 
 // @route   DELETE /cart/clear
 // @desc    Clear all items from the cart
-export const clearCart = async (req: Request, res: Response, next: NextFunction) => {
+export const clearCart = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?._id; // Get authenticated user's ID
 

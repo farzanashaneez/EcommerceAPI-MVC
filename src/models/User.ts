@@ -8,6 +8,9 @@ export interface IUser extends Document {
   isVerified: boolean;
   googleId?: string;
    isBlocked: boolean;
+   wishlist: mongoose.Types.ObjectId[];
+   walletBalance: number;
+   walletTransactions?: mongoose.Types.ObjectId[];
 }
 
 const userSchema = new Schema<IUser>({
@@ -17,6 +20,9 @@ const userSchema = new Schema<IUser>({
   isVerified: { type: Boolean, default: false },
   googleId: String,
   isBlocked:  { type: Boolean, default: false },
+  wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
+  walletBalance: { type: Number, default: 0 },
+  walletTransactions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'WalletTransaction' }],
 });
 
 export default mongoose.model<IUser>('User', userSchema);
