@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import User from '../models/User';
 import httpStatus from "../utils/httpStatus";
+import { AuthenticatedRequest } from '../types/express/custom';
 
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
@@ -26,4 +27,14 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
   } catch (err) {
     return res.status(httpStatus.UNAUTHORIZED).json({ message: 'Unauthorized: Invalid token' });
   }
+};
+
+export const adminAuth = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const user = req.user;
+
+  if (!user || !user.isAdmin) {
+    return res.status(httpStatus.FORBIDDEN).json({ message: 'Forbidden: Admin access required' });
+  }
+
+  next();
 };
