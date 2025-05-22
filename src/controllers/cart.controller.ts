@@ -2,11 +2,8 @@ import { Request, Response, NextFunction } from "express";
 import Cart from "../models/Cart";
 import httpStatus from "../utils/httpStatus";
 import { IUser } from "../models/User";
+import { AuthenticatedRequest } from "../types/express/custom";
 
-// Extend Request interface to include optional user property (authenticated user)
-interface AuthenticatedRequest extends Request {
-  user?: IUser;
-}
 
 // @route   POST /cart/add
 // @desc    Add a new item to cart or update quantity if it already exists
