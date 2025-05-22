@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import Stripe from 'stripe';
-import mongoose from 'mongoose';
 import Order from '../models/Order';
 import User from '../models/User';
 import WalletTransaction from '../models/Wallet';
+import httpStatus from "../utils/httpStatus";
+
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 //   apiVersion: '2023-10-16',
@@ -17,12 +18,12 @@ export const initiatePayment = async (req: Request, res: Response, next: NextFun
     const { orderId, paymentMethod } = req.body;
 
     const order = await Order.findById(orderId);
-    if (!order) return res.status(404).json({ message: 'Order not found' });
+    if (!order) return res.status(httpStatus.NOT_FOUND).json({ message: 'Order not found' });
 
     if (paymentMethod === 'wallet') {
       const user = await User.findById(order.userId);
       if (!user || user.walletBalance < order.netAmount)
-        return res.status(400).json({ message: 'Insufficient wallet balance' });
+        return res.status(httpStatus.BAD_REQUEST).json({ message: 'Insufficient wallet balance' });
 
       user.walletBalance -= order.netAmount;
       await user.save();
@@ -69,7 +70,7 @@ export const initiatePayment = async (req: Request, res: Response, next: NextFun
       return res.json({ message: 'Order placed with Cash on Delivery' });
     }
 
-    res.status(400).json({ message: 'Unsupported payment method' });
+    res.status(httpStatus.BAD_REQUEST).json({ message: 'Unsupported payment method' });
   } catch (err) {
     next(err);
   }
@@ -88,7 +89,7 @@ export const handleStripeWebhook = async (req: Request, res: Response, next: Nex
     try {
       event = stripe.webhooks.constructEvent(rawBody, sig!, endpointSecret);
     } catch (err) {
-      return res.status(400).send(`Webhook Error: ${(err as Error).message}`);
+      return res.status(httpStatus.BAD_REQUEST).send(`Webhook Error: ${(err as Error).message}`);
     }
 
     if (event.type === 'checkout.session.completed') {
@@ -121,7 +122,7 @@ export const refundPayment = async (req: Request, res: Response, next: NextFunct
 
     const order = await Order.findById(orderId);
     if (!order || order.status !== 'paid')
-      return res.status(400).json({ message: 'Refund not possible' });
+      return res.status(httpStatus.BAD_REQUEST).json({ message: 'Refund not possible' });
 
     if (order.paymentMethod === 'wallet') {
       await WalletTransaction.create({
@@ -143,7 +144,7 @@ export const refundPayment = async (req: Request, res: Response, next: NextFunct
 
     if (order.paymentMethod === 'stripe') {
       if (!order.stripePaymentIntentId) {
-        return res.status(400).json({ message: 'Stripe payment intent ID not found' });
+        return res.status(httpStatus.BAD_REQUEST).json({ message: 'Stripe payment intent ID not found' });
       }
 
       const refund = await stripe.refunds.create({
@@ -156,7 +157,7 @@ export const refundPayment = async (req: Request, res: Response, next: NextFunct
       return res.json({ message: 'Refunded via Stripe', refund });
     }
 
-    res.status(400).json({ message: 'Refund method not supported for this order' });
+    res.status(httpStatus.BAD_REQUEST).json({ message: 'Refund method not supported for this order' });
   } catch (err) {
     next(err);
   }

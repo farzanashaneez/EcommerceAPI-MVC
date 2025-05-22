@@ -20,6 +20,9 @@ app.use(morgan('dev'));
 // Enable CORS for cross-origin requests
 app.use(cors());
 
+// Handle raw body for Stripe Webhook
+app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
+
 
 // Middleware to parse JSON bodies from HTTP requests
 app.use(express.json());
