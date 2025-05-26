@@ -4,10 +4,12 @@ import Order from '../models/Order';
 import User from '../models/User';
 import WalletTransaction from '../models/Wallet';
 import httpStatus from "../utils/httpStatus";
+import dotenv from 'dotenv';
+dotenv.config();
 
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-//   apiVersion: '2023-10-16',
+  // apiVersion : '2023-10-16', // Or your preferred Stripe API version
 });
 
 // -----------------------------
