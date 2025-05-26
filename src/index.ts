@@ -43,7 +43,7 @@ app.use((req, res, next) => {
 app.use(errorHandler);
 
 // Set the port from environment or use 3000 as default
-const PORT = process.env.PORT || 3000;
+const PORT =parseInt(process.env.PORT || '3000' );
 
 // Connect to MongoDB and start the server
 mongoose
@@ -52,4 +52,4 @@ mongoose
     console.log('MongoDB connected'); // Log successful DB connection
   })
   .catch(err => console.error('DB connection failed', err)); // Log DB connection error
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`)); // Start server
+  app.listen(PORT,'0.0.0.0', () => console.log(`Server running on port ${PORT}`)); // Start server
