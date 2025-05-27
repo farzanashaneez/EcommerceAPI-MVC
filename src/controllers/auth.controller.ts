@@ -89,12 +89,12 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     // Find the user by email
     const user = await User.findOne({ email });
 
-    // User must exist and be verified
-    if (!user || !user.isVerified)
-      return res.status(httpStatus.BAD_REQUEST).json({ message: "Not verified" });
+    // If user not found, return error
+    if (!user)
+      return res.status(httpStatus.NOT_FOUND).json({ message: "User not found" });
 
     // Blocked users cannot log in
-    if (user.isBlocked)
+    if (!user || user.isBlocked)
       return res.status(httpStatus.FORBIDDEN).json({ message: "No access" });
 
     // Compare provided password with stored hashed password

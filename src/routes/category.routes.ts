@@ -9,9 +9,6 @@ import {
 import { asyncHandler } from "../utils/asyncHandler"; // Middleware to handle async errors
 
 const router = express.Router();
-router.get('/test', (req, res) => {
-  res.json({ message: 'Category test route working!' });
-});
 
 // @route   POST /
 // @desc    Create a new category
