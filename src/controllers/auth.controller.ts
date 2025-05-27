@@ -72,9 +72,16 @@ export const verifyOTP = async (req: Request, res: Response, next: NextFunction)
 
     // Remove the OTP record as it is no longer needed
     await Otp.deleteOne({ _id: otpRecord._id });
+ 
+    // Generate JWT token for the user
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, {
+      expiresIn: "1d",
+    });
+    // Exclude password from user object before sending response
+    const { password: _, ...userWithoutPassword } = user.toObject();
 
     // Return success response
-    return res.status(httpStatus.OK).json({ message: 'Email verified and user created successfully' });
+    return res.status(httpStatus.OK).json({ message: 'Email verified and user created successfully',user:userWithoutPassword ,token});
   } catch (err) {
     next(err);
   }

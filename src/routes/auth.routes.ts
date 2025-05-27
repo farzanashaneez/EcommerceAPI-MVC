@@ -5,9 +5,10 @@ import {
   verifyOTP,
   login,
   googleAuth,
+  blockUser,
 } from "../controllers/auth.controller"; // Import controller functions
 import { asyncHandler } from "../utils/asyncHandler"; // Middleware to handle async errors
- 
+
 // Initialize the router
 const router = Router();
 
@@ -27,5 +28,8 @@ router.post("/login", asyncHandler(login));
 // @desc    Login or register user via Google OAuth
 router.post("/google-auth", asyncHandler(googleAuth));
 
+// @route   PATCH /block-user/:id
+// @desc    Handle block user functionality
+router.patch("/block-user/:id", asyncHandler(blockUser));
 // Export the router
 export default router;
