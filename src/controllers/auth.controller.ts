@@ -159,26 +159,58 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
   }
 };
 
-// @route   GET /verify-email
-// @desc    Verify user's email address
-export const verifyEmail = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+// @route   POST /forgot-password
+// @desc    Send OTP to reset password
+export const forgotPassword = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
   try {
-    const { email } = req.query;
-    if (!email || typeof email !== 'string') {
-      return res.status(httpStatus.BAD_REQUEST).json({ message: 'Invalid email' });
-    }
-    // Find user by email
+    const { email } = req.body;
+
     const user = await User.findOne({ email });
+    if (!user) return res.status(httpStatus.NOT_FOUND).json({ message: 'User not found' });
 
-    if (!user) {
-      return res.status(httpStatus.NOT_FOUND).json({ message: 'User not found' });
-    }
+    // Remove old OTPs
+    await Otp.deleteMany({ email });
 
-    return res.json({ message: 'Email verified successfully' });
+    // Generate and save new OTP
+    const otp = generateOTP();
+    await Otp.create({ email, otp });
+
+    await sendOTPEmail(email, otp);
+
+    return res.status(httpStatus.OK).json({ message: 'OTP sent to email for password reset' });
   } catch (err) {
     next(err);
   }
 };
+
+// @route   POST /verify-reset-otp
+// @desc    Verify OTP and reset password
+export const verifyResetOTP = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    const otpRecord = await Otp.findOne({ email, otp });
+    if (!otpRecord)
+      return res.status(httpStatus.BAD_REQUEST).json({ message: 'Invalid or expired OTP' });
+
+    const user = await User.findOne({ email });
+    if (!user)
+      return res.status(httpStatus.NOT_FOUND).json({ message: 'User not found' });
+
+    // Update password
+    const hashed = await bcrypt.hash(newPassword, 10);
+    user.password = hashed;
+    await user.save();
+
+    // Remove OTP after successful use
+    await Otp.deleteOne({ _id: otpRecord._id });
+
+    return res.status(httpStatus.OK).json({ message: 'Password reset successfully' });
+  } catch (err) {
+    next(err);
+  }
+};
+
 
 // @route   POST /reset-password
 // @desc    Reset user's password

@@ -8,8 +8,8 @@ import {
   blockUser,
   resendOTP,
   refreshToken,
-  verifyEmail,
   resetPassword,
+  forgotPassword,
 } from "../controllers/auth.controller"; // Import controller functions
 import { asyncHandler } from "../utils/asyncHandler"; // Middleware to handle async errors
 
@@ -32,9 +32,9 @@ router.post("/resend-otp", asyncHandler(resendOTP));
 // @desc    Refresh JWT token
 router.post("/refresh-token", asyncHandler(refreshToken));
 
-// @route get /verify-email
-// @desc Verify email address
-router.get("/verify-email", asyncHandler(verifyEmail));
+// @route   post /forgot-password
+// @desc    Send reset password link to user's email
+router.post("/forgot-password", asyncHandler(forgotPassword));
 
 // @ route   POST /reset-password
 // @desc    Reset user password
