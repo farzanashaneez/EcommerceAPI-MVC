@@ -33,7 +33,7 @@ router.post("/resend-otp", asyncHandler(resendOTP));
 router.post("/refresh-token", asyncHandler(refreshToken));
 
 // @route   post /forgot-password
-// @desc    Send reset password link to user's email
+// @desc    Send OTP to user's email
 router.post("/forgot-password", asyncHandler(forgotPassword));
 
 // @ route   POST /reset-password

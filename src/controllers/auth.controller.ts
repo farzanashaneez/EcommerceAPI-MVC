@@ -77,16 +77,18 @@ export const verifyOTP = async (req: Request, res: Response, next: NextFunction)
   try {
     const { email, otp } = req.body;
 
-    // Find the OTP record matching the email and otp
-    const otpRecord = await Otp.findOne({ email, otp });
-    if (!otpRecord)
-      return res.status(httpStatus.BAD_REQUEST).json({ message: 'Invalid or expired OTP' });
-
+    
     // Check if user already verified to prevent duplicates
     const existingUser = await User.findOne({ email });
     if (existingUser)
       return res.status(httpStatus.BAD_REQUEST).json({ message: 'User already verified' });
 
+      // Find the OTP record matching the email and otp
+    const otpRecord = await Otp.findOne({ email, otp });
+    if (!otpRecord)
+      return res.status(httpStatus.BAD_REQUEST).json({ message: 'Invalid or expired OTP' });
+
+      
     // Create a new verified user with saved data
     const user = new User({
       name: otpRecord.name,
