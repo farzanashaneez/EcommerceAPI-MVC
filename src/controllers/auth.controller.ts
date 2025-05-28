@@ -88,7 +88,7 @@ export const verifyOTP = async (req: Request, res: Response, next: NextFunction)
     if (!otpRecord)
       return res.status(httpStatus.BAD_REQUEST).json({ message: 'Invalid or expired OTP' });
 
-      
+
     // Create a new verified user with saved data
     const user = new User({
       name: otpRecord.name,
@@ -187,7 +187,7 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
 
 // @route   POST /verify-reset-otp
 // @desc    Verify OTP and reset password
-export const verifyResetOTP = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+export const resetPassword = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
   try {
     const { email, otp, newPassword } = req.body;
 
@@ -214,27 +214,27 @@ export const verifyResetOTP = async (req: Request, res: Response, next: NextFunc
 };
 
 
-// @route   POST /reset-password
-// @desc    Reset user's password
-export const resetPassword = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
-  try {
-    const { email, newPassword } = req.body;
-    // Find the user by email
-    const user = await User.findOne({ email });
-    // If user not found, return error
-    if (!user)
-      return res.status(httpStatus.NOT_FOUND).json({ message: "User not found" });
-    // Hash the new password securely before updating
-    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-    // Update user's password with the new hashed password
-    user.password = hashedNewPassword;
-    await user.save();
-    // Return success response
-    return res.status(httpStatus.OK).json({ message: 'Password reset successfully' });
-  } catch (err) {
-    next(err);
-  }
-};
+// // @route   POST /reset-password
+// // @desc    Reset user's password
+// export const resetPassword = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+//   try {
+//     const { email, newPassword } = req.body;
+//     // Find the user by email
+//     const user = await User.findOne({ email });
+//     // If user not found, return error
+//     if (!user)
+//       return res.status(httpStatus.NOT_FOUND).json({ message: "User not found" });
+//     // Hash the new password securely before updating
+//     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+//     // Update user's password with the new hashed password
+//     user.password = hashedNewPassword;
+//     await user.save();
+//     // Return success response
+//     return res.status(httpStatus.OK).json({ message: 'Password reset successfully' });
+//   } catch (err) {
+//     next(err);
+//   }
+// };
 
 // @route   POST /google-auth
 // @desc    Authenticate or register user via Google OAuth
