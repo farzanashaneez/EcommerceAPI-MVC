@@ -6,6 +6,7 @@ import {
   login,
   googleAuth,
   blockUser,
+  resendOTP,
 } from "../controllers/auth.controller"; // Import controller functions
 import { asyncHandler } from "../utils/asyncHandler"; // Middleware to handle async errors
 
@@ -19,6 +20,10 @@ router.post("/register", asyncHandler(register));
 // @route   POST /verify-otp
 // @desc    Verify OTP sent to user's email
 router.post("/verify-otp", asyncHandler(verifyOTP));
+
+// @route   POST /resend-otp
+// @desc    Resend OTP to user's email
+router.post("/resend-otp", asyncHandler(resendOTP));
 
 // @route   POST /login
 // @desc    Login user with email and password

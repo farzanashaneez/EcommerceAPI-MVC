@@ -42,6 +42,34 @@ export const register = async (req: Request, res: Response, next: NextFunction):
     next(err);
   }
 };
+ 
+// @route  POST /send-otp
+// @desc   Resend OTP to the user's email
+export const resendOTP = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  try {
+    const { email } = req.body;
+
+    // Check if OTP exists for the email
+    const otpRecord = await Otp.findOne({ email });
+    if (!otpRecord)
+      return res.status(httpStatus.NOT_FOUND).json({ message: 'No OTP found for this email' });
+
+    // Generate a new OTP code
+    const otp = generateOTP();
+
+    // Update the OTP record with the new code
+    otpRecord.otp = otp;
+    await otpRecord.save();
+
+    // Send the new OTP to the user's email
+    await sendOTPEmail(email, otp);
+
+    // Inform client that OTP has been resent
+    return res.status(httpStatus.OK).json({ message: 'OTP resent successfully' });
+  } catch (err) {
+    next(err);
+  }
+};
 
 // @route   POST /verify-otp
 // @desc    Verify the OTP and create the user account upon success
