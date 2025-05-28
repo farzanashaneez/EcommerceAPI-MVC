@@ -105,11 +105,15 @@ export const verifyOTP = async (req: Request, res: Response, next: NextFunction)
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, {
       expiresIn: "1d",
     });
+
+    //generate refresh token
+    const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET!);// no expiry
+
     // Exclude password from user object before sending response
     const { password: _, ...userWithoutPassword } = user.toObject();
 
     // Return success response
-    return res.status(httpStatus.OK).json({ message: 'Email verified and user created successfully',user:userWithoutPassword ,token});
+    return res.status(httpStatus.OK).json({ message: 'Email verified and user created successfully',user:userWithoutPassword ,token,refreshToken});
   } catch (err) {
     next(err);
   }
@@ -142,11 +146,57 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
       expiresIn: "1d",
     });
 
+     //generate refresh token
+     const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET!);// no expiry
+
     // Exclude password from user object before sending response
     const { password: _, ...userWithoutPassword } = user.toObject();
 
     // Send token and user details back to client
-    return res.json({ token, user: userWithoutPassword });
+    return res.json({ token,refreshToken, user: userWithoutPassword });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @route   GET /verify-email
+// @desc    Verify user's email address
+export const verifyEmail = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  try {
+    const { email } = req.query;
+    if (!email || typeof email !== 'string') {
+      return res.status(httpStatus.BAD_REQUEST).json({ message: 'Invalid email' });
+    }
+    // Find user by email
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(httpStatus.NOT_FOUND).json({ message: 'User not found' });
+    }
+
+    return res.json({ message: 'Email verified successfully' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @route   POST /reset-password
+// @desc    Reset user's password
+export const resetPassword = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  try {
+    const { email, newPassword } = req.body;
+    // Find the user by email
+    const user = await User.findOne({ email });
+    // If user not found, return error
+    if (!user)
+      return res.status(httpStatus.NOT_FOUND).json({ message: "User not found" });
+    // Hash the new password securely before updating
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    // Update user's password with the new hashed password
+    user.password = hashedNewPassword;
+    await user.save();
+    // Return success response
+    return res.status(httpStatus.OK).json({ message: 'Password reset successfully' });
   } catch (err) {
     next(err);
   }
@@ -237,6 +287,33 @@ export const blockUser = async (req: Request, res: Response, next: NextFunction)
     return res.status(httpStatus.OK).json({
       message: `User has been ${block ? 'blocked' : 'unblocked'} successfully`,
       user
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+ //@route   POST  /refresh-token
+// @desc    Refresh JWT token
+export const refreshToken = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(httpStatus.UNAUTHORIZED).json({ message: 'No refreshToken provided' });
+    }
+
+    // Verify the existing refreshToken
+    jwt.verify(refreshToken, process.env.JWT_SECRET!, (err:any, decoded:any) => {
+      if (err) {
+        return res.status(httpStatus.UNAUTHORIZED).json({ message: 'Invalid token' });
+      }
+
+      // Generate a new token
+      const newToken = jwt.sign({ id: (decoded as any).id }, process.env.JWT_SECRET!, {
+        expiresIn: "1d",
+      });
+
+      return res.json({ token: newToken });
     });
   } catch (err) {
     next(err);

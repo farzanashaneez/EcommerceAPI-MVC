@@ -7,6 +7,9 @@ import {
   googleAuth,
   blockUser,
   resendOTP,
+  refreshToken,
+  verifyEmail,
+  resetPassword,
 } from "../controllers/auth.controller"; // Import controller functions
 import { asyncHandler } from "../utils/asyncHandler"; // Middleware to handle async errors
 
@@ -24,6 +27,18 @@ router.post("/verify-otp", asyncHandler(verifyOTP));
 // @route   POST /resend-otp
 // @desc    Resend OTP to user's email
 router.post("/resend-otp", asyncHandler(resendOTP));
+
+// @route   Post /refresh-token
+// @desc    Refresh JWT token
+router.post("/refresh-token", asyncHandler(refreshToken));
+
+// @route get /verify-email
+// @desc Verify email address
+router.get("/verify-email", asyncHandler(verifyEmail));
+
+// @ route   POST /reset-password
+// @desc    Reset user password
+router.post("/reset-password", asyncHandler(resetPassword));
 
 // @route   POST /login
 // @desc    Login user with email and password
